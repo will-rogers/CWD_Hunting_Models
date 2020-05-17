@@ -530,5 +530,5 @@ cwd_det_model_wiw_tracking <- function (params) {
     ###################
     
     output <- list(counts = counts.long, deaths = deaths.long, tracking.inf = tracking.inf.long)
-  }
-?str_sub
+}
+
