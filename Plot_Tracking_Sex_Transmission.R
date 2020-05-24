@@ -23,10 +23,13 @@
 #' plot_track_sex_trans(out$tracking.inf)
 #' 
 #' @export
-plot_track_sex_trans <- function (dat) {
+plot_track_sex_trans <- function (dat, totals) {
   if(missing(dat)==TRUE) warning("missing data to plot")
   
-  dat %>% 
+  if(missing(totals) == TRUE) totals <- F
+  
+  if(totals == FALSE) {
+  p <- dat %>% 
     filter(category == "mm.cases"|
              category == "mf.cases"|
              category == "fm.cases"|
@@ -43,4 +46,33 @@ plot_track_sex_trans <- function (dat) {
     labs(y = "Transmission Events",
          x = "Year") +
     theme_classic()
+  p
+  }
+  if (totals == TRUE) {
+    df <- dat %>% 
+      mutate(group = ifelse(category == "fm.cases"|
+                              category == "ff.cases", "Female", NA)) %>% 
+      mutate(group = ifelse(category == "mm.cases"|
+                              category == "mf.cases", "Male", group)) %>% 
+      mutate(group = ifelse(category == "em.cases"|
+                              category == "ef.cases", "Environment", group))
+    
+    p <- df %>% 
+      group_by(group, age, month) %>% 
+      mutate(n = sum(population)) %>% 
+      filter(group == "Female"|
+               group == "Male"|
+               group == "Environment") %>% 
+      mutate(year = floor(year)) %>% 
+      group_by(group, year) %>% 
+      summarise(n = sum(n)) %>% 
+      ggplot(aes(year, n, color = group)) +
+      geom_line() +
+      scale_color_discrete(name = "Infection Type",
+                           labels = c("E-", "F-", "M-")) +
+      labs(y = "Transmission Events",
+           x = "Year") +
+      theme_classic()
+    p
+  }
 }
