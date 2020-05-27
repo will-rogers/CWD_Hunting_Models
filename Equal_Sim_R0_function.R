@@ -172,16 +172,16 @@ equal_sims <- function (params) {
   bff <- rep(NA, length.steps)
   
   #settinging intial guess for bff
-  bff[1] <- min.bff.m
+  bff[1] <- min.bff.md
   
   #starting guessing, calculating, evaluating
   for (i in 1:length.steps) {
     beta.ff <- bff[i] #guess = beta
     
     # what each transmission type change to based on guess
-    beta.fm <- beta.ff * gamma.fm * multiplier.fm 
-    beta.mm <- beta.ff * gamma.mm * multiplier.mm
-    beta.mf <- beta.ff * gamma.mf * multiplier.mf
+    beta.fm <- beta.ff * gamma.fm.md 
+    beta.mm <- beta.ff * gamma.mm.md
+    beta.mf <- beta.ff * gamma.mf.md
     
     # evaluate former partial derivatives
     for (j in 1:((2*10*n.age.cats)^2)){
@@ -231,19 +231,19 @@ equal_sims <- function (params) {
   #storing the average R0.m and average bff.m as well as the multipliers associated
   df[2,2] <- R0.m
   df[2,3] <- bff.m
-  df[2,4] <- gamma.fm * multiplier.fm
-  df[2,5] <- gamma.mm * multiplier.mm
-  df[2,6] <- gamma.mf * multiplier.mf
+  df[2,4] <- gamma.fm.md
+  df[2,5] <- gamma.mm.md
+  df[2,6] <- gamma.mf.md
   
   # doing this all over again but for a female dominated scenario
   R0. <- rep(NA, length.steps)
   bff <- rep(NA, length.steps)
-  bff[1] <- min.bff.f
+  bff[1] <- min.bff.fd
   for (i in 1:length.steps) {
     beta.ff <- bff[i]
-    beta.fm <- beta.ff * gamma.fm / divider.fm
-    beta.mm <- beta.ff * gamma.mm / divider.mm
-    beta.mf <- beta.ff * gamma.mf / divider.mf
+    beta.fm <- beta.ff * gamma.fm.fd
+    beta.mm <- beta.ff * gamma.mm.fd
+    beta.mf <- beta.ff * gamma.mf.fd
     for (j in 1:((2*10*n.age.cats)^2)){
       eval.f[j] <- eval(partial.df[[j]])
       eval.v[j] <- eval(partial.dv[[j]])
@@ -276,9 +276,9 @@ equal_sims <- function (params) {
   }
   df[3,2] <- R0.f
   df[3,3] <- bff.f
-  df[3,4] <- gamma.fm / divider.fm
-  df[3,5] <- gamma.mm / divider.mm
-  df[3,6] <- gamma.mf / divider.mf
+  df[3,4] <- gamma.fm.fd
+  df[3,5] <- gamma.mm.fd
+  df[3,6] <- gamma.mf.fd
   
   # columns named for future use
   df <- data.frame(df)
@@ -287,16 +287,16 @@ equal_sims <- function (params) {
 }
 
 params <- list(beta.ff = 0.075, # equal transmission beta one is willing to consider
-               min.bff.m = 0.051, # minimum guess for beta.ff under male dominated scenario
-               min.bff.f = 0.0975, # minimum guess for beta.ff under female dominated scenario
+               min.bff.md = 0.0544, # minimum guess for beta.ff under male dominated scenario
+               min.bff.fd = 0.0923, # minimum guess for beta.ff under female dominated scenario
                step.size = 0.00001, # how guesses increase (guess[prior]+step=guess[now])
                length.steps = 1000, # how far out to go with steps
-               multiplier.mm = 2, # how will gamma.mm be changed during male dominated scenario 
-               multiplier.mf = 2, # how will gamma.mf be changed during male dominated scenario
-               multiplier.fm = 1, # how will gamma.fm be changed during male dominated scenario
-               divider.mm = 2, # how will gamma.mm be changed during female dominated scenario
-               divider.mf = 2, # how will gamma.mf be changed during female dominated scenario
-               divider.fm = 1, # how will gamma.fm be changed during female dominated scenario
+               gamma.mm.md = 2, # how will gamma.mm be changed during male dominated scenario 
+               gamma.mf.md = 1.5, # how will gamma.mf be changed during male dominated scenario
+               gamma.fm.md = 1, # how will gamma.fm be changed during male dominated scenario
+               gamma.mm.fd = 0.5, # how will gamma.mm be changed during female dominated scenario
+               gamma.mf.fd = 0.5, # how will gamma.mf be changed during female dominated scenario
+               gamma.fm.fd = 1.3, # how will gamma.fm be changed during female dominated scenario
                # basic values underlying population and hunting
                n.age.cats = 12, gamma.fm = 1, gamma.mm = 1, gamma.mf = 1, 
                theta = 1, hunt.mort.fawn = 0.01, hunt.mort.juv.f = 0.1,
@@ -311,10 +311,11 @@ params <- list(fawn.an.sur = 0.6, juv.an.sur = 0.8, ad.an.f.sur = 0.95,
                ad.an.m.sur = 0.9, fawn.repro = 0, juv.repro = 0.6, ad.repro = 1, 
                hunt.mort.fawn = 0.01, hunt.mort.juv.f = 0.1, hunt.mort.juv.m = 0.1,
                hunt.mort.ad.f = 0.1, hunt.mort.ad.m = 0.2, ini.fawn.prev = 0.02,
-               ini.juv.prev = 0.03, ini.ad.f.prev = 0.04,  ini.ad.m.prev = 0.04,
-               n.age.cats = 12,  p = 0.43, env.foi = 0,  beta.ff = 0.075, 
-               gamma.mm = 1, gamma.mf = 1, gamma.fm = 1,
+               ini.juv.prev = 0.03, ini.ad.f.prev = 0.04,  ini.ad.m.prev = 0.08,
+               n.age.cats = 12,  p = 0.43, env.foi = 0.00,  beta.ff = 0.054415, 
+               gamma.mm = 2, gamma.mf = 1.5, gamma.fm = 1,
                theta = 1, n0 = 2000, n.years = 10, rel.risk = 1.0)
 out <- cwd_det_model_wiw(params)
 plot_prev_time(out$counts)
 plot_tots(out$counts)
+plot_prev_age_end(out$counts)
