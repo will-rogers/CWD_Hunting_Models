@@ -1,13 +1,20 @@
-#' params <- list(fawn.an.sur = 0.6, juv.an.sur = 0.8, ad.an.f.sur = 0.95,
-#'                ad.an.m.sur = 0.95, fawn.repro = 0, juv.repro = 0.6, ad.repro = 1,
-#'                hunt.mort.fawn = 0.01, hunt.mort.juv.f = 0.1, hunt.mort.juv.m = 0.1,
-#'                hunt.mort.ad.f = 0.1, hunt.mort.ad.m = 0.1, ini.fawn.prev = 0.02,
-#'                ini.juv.prev = 0.03, ini.ad.f.prev = 0.04,  ini.ad.m.prev = 0.08,
-#'                n.age.cats = 12,  p = 0.43, env.foi = 0.001,  beta.ff = 0.04,
-#'                gamma.mm = 1.5, gamma.mf = 1.5, gamma.fm = 1,
-#'                theta = 1, n0 = 2000, n.years = 20, rel.risk = 1.0)
-#' out <- cwd_wiw_track_R0(params = params)
-#' out$R0
+#' @importFrom popbio stable.stage
+#' @importFrom dplyr rename mutate
+#' @importFrom reshape2 melt
+# require(popbio)
+# require(dplyr)
+# require(reshape2)
+# require(stringr)
+# params <- list(fawn.an.sur = 0.6, juv.an.sur = 0.8, ad.an.f.sur = 0.95,
+#                ad.an.m.sur = 0.95, fawn.repro = 0, juv.repro = 0.6, ad.repro = 1,
+#                hunt.mort.fawn = 0.01, hunt.mort.juv.f = 0.1, hunt.mort.juv.m = 0.1,
+#                hunt.mort.ad.f = 0.1, hunt.mort.ad.m = 0.1, ini.fawn.prev = 0.02,
+#                ini.juv.prev = 0.03, ini.ad.f.prev = 0.04,  ini.ad.m.prev = 0.08,
+#                n.age.cats = 12,  p = 0.43, env.foi = 0.00,  beta.ff = 0.06,
+#                gamma.mm = 1.5, gamma.mf = 1.5, gamma.fm = 1,
+#                theta = 1, n0 = 2000, n.years = 20, rel.risk = 1.0)
+# out <- cwd_wiw_track_R0(params = params)
+# out$R0
 cwd_wiw_track_R0 <- function (params) {
   for (v in 1:length(params)) assign(names(params)[v], params[[v]])
   if (exists("fawn.an.sur") == FALSE) {
@@ -230,9 +237,9 @@ cwd_wiw_track_R0 <- function (params) {
   St.f <- tmp #for susceptible females
   St.m <- tmp #for susceptible males
   It.m <- array(rep(tmp), dim = c(n.age.cats, n.years * 12, 
-                                  10)) # making this single matrix applicable for 10 disease categories for females
-  It.f <- array(rep(tmp), dim = c(n.age.cats, n.years * 12, 
                                   10)) # making this single matrix applicable for 10 disease categories for males
+  It.f <- array(rep(tmp), dim = c(n.age.cats, n.years * 12, 
+                                  10)) # making this single matrix applicable for 10 disease categories for females
   Ht.f <- tmp # for hunted females
   Ht.m <- tmp # for hunted males
   Dt.f <- tmp # for naturally killed females
@@ -372,18 +379,18 @@ cwd_wiw_track_R0 <- function (params) {
                        em.cases = em.cases,
                        ef.cases = ef.cases) # compiling
 
-  counts.long <- melt(counts) %>% 
-    rename(age = Var1, month = Var2, population = value, category = L1) %>% 
-    mutate(year = (month - 1)/12, sex = as.factor(str_sub(category, -1)), disease = "no") #compiling based on year, sex, and susceptible
+  counts.long <- reshape2::melt(counts) %>% 
+    dplyr::rename(age = Var1, month = Var2, population = value, category = L1) %>% 
+    dplyr::mutate(year = (month - 1)/12, sex = as.factor(str_sub(category, -1)), disease = "no") #compiling based on year, sex, and susceptible
   counts.long$disease[str_sub(counts.long$category, 1, 1) == "I"] <- "yes" #labeling infected population
   counts.long$disease <- as.factor(counts.long$disease) 
-  deaths.long <- melt(deaths) %>% 
-    rename(age = Var1, month = Var2, population = value, category = L1) %>% 
-    mutate(year = (month - 1)/12, sex = as.factor(str_sub(category, -1))) # again for death
+  deaths.long <- reshape2::melt(deaths) %>% 
+    dplyr::rename(age = Var1, month = Var2, population = value, category = L1) %>% 
+    dplyr::mutate(year = (month - 1)/12, sex = as.factor(str_sub(category, -1))) # again for death
 
-  tracking.inf.long <- melt(tracking.inf) %>% 
-    rename(age = Var1, month = Var2, population = value, category = L1) %>%
-    mutate(year = (month - 1)/12) #making into usable df
+  tracking.inf.long <- reshape2::melt(tracking.inf) %>% 
+    dplyr::rename(age = Var1, month = Var2, population = value, category = L1) %>%
+    dplyr::mutate(year = (month - 1)/12) #making into usable df
   
   ############ New Stuff
   
@@ -510,8 +517,8 @@ cwd_wiw_track_R0 <- function (params) {
   q <- rep(1:(2*10*n.age.cats), each = (2*10*n.age.cats)) #number of equations
   r <- rep(1:(2*10*n.age.cats), (2*10*n.age.cats)) # number of infectious classes
   
-  f.matrix <- matrix(NA, nrow = (2*10*n.age.cats), ncol = (2*10*n.age.cats)) # a blank matrix to store evaluations of gains
-  v.matrix <- matrix(NA, nrow = (2*10*n.age.cats), ncol = (2*10*n.age.cats)) # a blank matrix to store evaluations of losses
+  f.matrix <- matrix(0, nrow = (2*10*n.age.cats), ncol = (2*10*n.age.cats)) # a blank matrix to store evaluations of gains
+  v.matrix <- matrix(0, nrow = (2*10*n.age.cats), ncol = (2*10*n.age.cats)) # a blank matrix to store evaluations of losses
   
   for (i in 1:(2*10*n.age.cats)){
     for (j in 1:(2*10*n.age.cats)){

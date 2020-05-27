@@ -205,14 +205,14 @@ equal_sims <- function (params) {
     #if the final guess is still too small, we know we need to change our inputs
     if(R0 - R0.[i] > 0 &
        i == length.steps) {
-      print(expression("Step too small or initial guess too low"))
+      print(expression("Male dominated step too small or initial guess too low"))
       break
     }
     
     #if the first guess is too big, we know we need to change our inputs
     if(R0 - R0.[i] < 0 &
        i == 1) {
-      print(expression("Step too large or initial guess too high"))
+      print(expression("Male dominated step too large or initial guess too high"))
       break
     }
     
@@ -259,12 +259,12 @@ equal_sims <- function (params) {
     R0.[i] <- max(Re(eigen(f.matrix %*% solve(v.matrix))$values))
     if(R0 - R0.[i] > 0 &
        i == length.steps) {
-      print(expression("Step too small or initial guess too low"))
+      print(expression("Female dominated step too small or initial guess too low"))
       break
     }
     if(R0 - R0.[i] < 0 &
        i == 1) {
-      print(expression("Step too large or initial guess too high"))
+      print(expression("Female dominated step too large or initial guess too high"))
       break
     }
     if(R0 - R0.[i] < 0) {
@@ -286,9 +286,10 @@ equal_sims <- function (params) {
   return(df)
 }
 
-params <- list(min.bff.m = 0.045, # minimum guess for beta.ff under male dominated scenario
-               min.bff.f = 0.09, # minimum guess for beta.ff under female dominated scenario
-               step.size = 0.0001, # how guesses increase (guess[prior]+step=guess[now])
+params <- list(beta.ff = 0.075, # equal transmission beta one is willing to consider
+               min.bff.m = 0.051, # minimum guess for beta.ff under male dominated scenario
+               min.bff.f = 0.0975, # minimum guess for beta.ff under female dominated scenario
+               step.size = 0.00001, # how guesses increase (guess[prior]+step=guess[now])
                length.steps = 1000, # how far out to go with steps
                multiplier.mm = 2, # how will gamma.mm be changed during male dominated scenario 
                multiplier.mf = 2, # how will gamma.mf be changed during male dominated scenario
@@ -296,7 +297,6 @@ params <- list(min.bff.m = 0.045, # minimum guess for beta.ff under male dominat
                divider.mm = 2, # how will gamma.mm be changed during female dominated scenario
                divider.mf = 2, # how will gamma.mf be changed during female dominated scenario
                divider.fm = 1, # how will gamma.fm be changed during female dominated scenario
-               beta.ff = .07, # beta one is willing to consider
                # basic values underlying population and hunting
                n.age.cats = 12, gamma.fm = 1, gamma.mm = 1, gamma.mf = 1, 
                theta = 1, hunt.mort.fawn = 0.01, hunt.mort.juv.f = 0.1,
@@ -305,5 +305,16 @@ params <- list(min.bff.m = 0.045, # minimum guess for beta.ff under male dominat
                juv.an.sur = 0.8, ad.an.f.sur = 0.95, 
                ad.an.m.sur = 0.9, p = 0.43)
 mat <- equal_sims(params)
-mat <- data.frame(mat)
 write.csv(mat, "R0_Scenarios.csv")
+
+params <- list(fawn.an.sur = 0.6, juv.an.sur = 0.8, ad.an.f.sur = 0.95, 
+               ad.an.m.sur = 0.9, fawn.repro = 0, juv.repro = 0.6, ad.repro = 1, 
+               hunt.mort.fawn = 0.01, hunt.mort.juv.f = 0.1, hunt.mort.juv.m = 0.1,
+               hunt.mort.ad.f = 0.1, hunt.mort.ad.m = 0.2, ini.fawn.prev = 0.02,
+               ini.juv.prev = 0.03, ini.ad.f.prev = 0.04,  ini.ad.m.prev = 0.04,
+               n.age.cats = 12,  p = 0.43, env.foi = 0,  beta.ff = 0.075, 
+               gamma.mm = 1, gamma.mf = 1, gamma.fm = 1,
+               theta = 1, n0 = 2000, n.years = 10, rel.risk = 1.0)
+out <- cwd_det_model_wiw(params)
+plot_prev_time(out$counts)
+plot_tots(out$counts)

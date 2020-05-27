@@ -1,6 +1,11 @@
+require(readr)
+require(CWDsims)
+require(tidyverse)
+require(ggpubr)
+
 #calling the R0 validated scenarios
 scenarios <- read_csv("R0_Scenarios.csv") 
-
+scenarios$B.ff
 #creating a dataframe with k*4 reps per scenario
 k <- 25
 df <- data.frame(beta.ff = rep(scenarios$B.ff, each = k*4)) 
@@ -88,19 +93,20 @@ df$rate.val <- ifelse(df$rate.var == "am", df$hunt.m, df$rate.val)
 df$rate.val <- ifelse(df$rate.var == "jm", df$hunt.j.m, df$rate.val)
 df$rate.val <- ifelse(df$rate.var == "jf", df$hunt.j.f, df$rate.val)
 
-df %>% 
-  ggplot(aes(rate.val, fin.prev19.75, color = rate.var)) + 
+prev <- df %>% 
+  ggplot(aes(rate.val, fin.prev9.75, color = rate.var)) + 
   geom_line() +
   facet_grid(.~scenario) +
+  scale_y_log10() +
   theme_classic()
 
-df %>% 
-  ggplot(aes(rate.val, fin.pop19.75, color = rate.var)) + 
+pop <- df %>% 
+  ggplot(aes(rate.val, fin.pop9.75, color = rate.var)) + 
   geom_line() +
   facet_grid(.~scenario) +
+  scale_y_log10() +
   theme_classic()
 
-require(ggpubr)
 ggarrange(prev, pop, ncol=1, common.legend = T, legend = "right")
 ggsave("Plots/2D_comparisons.tiff", dpi=300, width = 10, height = 7)
 
